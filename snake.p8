@@ -135,9 +135,7 @@ function check_death()
 end
 
 function _update()
-    for snake in all(snakes) do
-        if snake.dead then return end
-    end
+    if (game_over) then return end
     update_velocities()
     ticks += 1
     if (ticks == 8 - speed) then 
