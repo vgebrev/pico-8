@@ -78,7 +78,7 @@ end
 
 function check_collision_with_snake(p, snake, exclude_head)
     for i = 1, #snake.segs do
-        if (not (exclude_head and i==1) and check_collision(snake.segs[i], p)) then return true end
+        if (not (exclude_head and i == 1) and check_collision(snake.segs[i], p)) then return true end
     end
     return false
 end
@@ -112,7 +112,8 @@ function update_food()
     end
 end
 
-function update_dead_state()
+function check_death()
+    local game_over = false
     for snake in all(snakes) do
         local head = snake.segs[1]
         if (check_collision({ x = 0, y = head.y }, head)) then snake.dead=true end
@@ -127,8 +128,10 @@ function update_dead_state()
         if (snake.dead) then
             snake.score = snake.score - 3
             sfx(1, 2)
+            game_over = true
         end
     end
+    return game_over
 end
 
 function _update()
@@ -142,11 +145,11 @@ function _update()
         ticks=0
     end 
     update_food()
-    update_dead_state()
+    game_over = check_death()
 end
 
 function draw_arena()
-	rectfill(0, 0, 127, 127, 5)
+    rectfill(0, 0, 127, 127, 5)
     rectfill(0, 8, 127, 11, 6)
     rectfill(0, 8, 3, 127, 6)
     rectfill(0, 124, 127, 127, 6)
@@ -159,10 +162,11 @@ end
 
 function draw_score(snake)
     print("p"..snake.index..": "..snake.score, 1 + (snake.index - 1) * 28, 1, snake.color)
-    if (snake.dead) then
-        rectfill(40, 56, 90, 68, 13)
-        print("game over", 48, 60, 7)
-    end
+end
+
+function draw_game_over()
+    rectfill(40, 56, 90, 68, 13)
+    print("game over", 48, 60, 7)
 end
 
 function draw_snakes()
@@ -178,6 +182,7 @@ function _draw()
     draw_arena()    
     draw_food()
     draw_snakes()
+    if (game_over) then draw_game_over() end
 end
 __sfx__
 010200001b5511e5501a5401753013530175201b5201f510000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
