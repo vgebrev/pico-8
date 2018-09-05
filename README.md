@@ -4,3 +4,7 @@
 * Battle Snakes - [snake.p8](https://github.com/vgebrev/pico-8/blob/master/snake.p8)
 
 ![catridge](https://raw.githubusercontent.com/vgebrev/pico-8/master/snake.p8.png)
+
+* Law of the West - [lawofthewest.p8](https://github.com/vgebrev/pico-8/blob/master/lawofthewest.p8)
+
+![catridge](https://raw.githubusercontent.com/vgebrev/pico-8/master/lawofthewest.p8.png)
