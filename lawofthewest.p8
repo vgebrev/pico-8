@@ -259,7 +259,7 @@ end
 function update_input()
     if (hero.state == "dead" or hero.state == "dying") then return end
 
-    if (btn(2) and hero.state == "ground") then
+    if (btnp(2) and hero.state == "ground") then
         jump_cowboy(hero)
     end
 
@@ -271,7 +271,7 @@ function update_input()
         hero.state = "ground"
     end 
 
-    if (btn(5) and not hero.projectile.fired) then
+    if (btnp(5) and not hero.projectile.fired) then
         hero.projectile.position.y = hero.position.y + 12
         hero.projectile.fired = true
         sfx(24)
