@@ -4,7 +4,7 @@ __lua__
 -- law of the west
 -- by vgebrev
 
-function make_actor(state, x, y, velocity, face_left)
+function make_actor(state, x, y, velocity, face_left, update_box_fn)
     local actor = {}
     actor.animation = { length = 0.068, elapsed = 0}
     actor.state = state
@@ -13,7 +13,8 @@ function make_actor(state, x, y, velocity, face_left)
     actor.acceleration = { x = 0, y = 0}
     actor.death_clock = 2
     actor.face_left = face_left
-    actor.box = {x = x, y = y, w = 0, h = 0 }
+    actor.box = update_box_fn(actor)
+    actor.update_box_fn = update_box_fn
     actor.projectile = make_projectile(actor)
     return actor
 end
@@ -29,10 +30,21 @@ function make_projectile(actor)
     return projectile
 end
 
+function make_eagle(x, y, velocity)
+    local eagle = {}
+    eagle = make_actor("soar", x, y, velocity, true, update_eagle_box)
+    eagle.elements = {
+        --head 
+        { states = alive_states, frame = 0, frame_step = 1, frame_count = 6, spr_offset = 48, position = { x = 0, y = 0 } },
+        --tail
+        { states = alive_states, frame = 0, frame_step = 1, frame_count = 6, spr_offset = 54, position = { x = -8, y = 0 } },
+    }
+    return eagle
+end
+
 function make_innocent(x, y, shirt_color, legs_color)
     local innocent = {}
-    innocent = make_actor("ground", x, y, { x = -1, y = 0 }, true)
-    innocent.box = update_cowboy_box(innocent)
+    innocent = make_actor("ground", x, y, { x = -1, y = 0 }, true, update_cowboy_box)
     innocent.elements = {
         --head
         { states = alive_states, frame = 0, frame_step = 0, frame_count = 1, spr_offset = 22, p = { { c1 = 8, c2 = 0 } }, position = { x = 0, y = 7 } },
@@ -58,8 +70,7 @@ end
 
 function make_cowboy(x, y, velocity, face_left, shirt_color, legs_color, legs_sprite_offset, head_sprite_offset)
     local cowboy = {}
-    cowboy = make_actor("ground", x, y, velocity, face_left)
-    cowboy.box = update_cowboy_box(cowboy)
+    cowboy = make_actor("ground", x, y, velocity, face_left, update_cowboy_box)
     cowboy.elements = { 
         --hat
         { states = alive_states, frame = 0, frame_step = 0.5, frame_count = 2, spr_offset = 14, position = { x = 1, y = 1 }  },
@@ -152,7 +163,7 @@ function set_states(states)
 end
 
 function init_states()
-    alive_states = set_states({ "ground", "jump", "dying", "crouch" })
+    alive_states = set_states({ "ground", "jump", "dying", "crouch", "soar", "divebomb" })
     upright_states = set_states({ "ground", "jump" })
     crouch_states = set_states({ "dying", "crouch" })
     dead_states = set_states({ "dead" })
@@ -161,10 +172,12 @@ end
 function init_game()
     game.score = 0
     game.loss_reason = nil
+    game.loss_cooloff = { length = 1.5, elapsed = 0 }
     timer = { elapsed = 0, last = time() }
     hero = {}
     bandit = {}
     innocent = {}
+    eagle = make_eagle(256, 16, { x = -3, y = 0 })
     bloods = {}
     hero = make_cowboy(12, 82, { x = 0, y = 0 }, false, 3, 12, 0, 10)
     bandit = make_cowboy(130, 82, { x = -2.25, y = 0 }, true, 5, 3, 32, 26)
@@ -173,7 +186,7 @@ end
 
 
 function _init()
-    game = { state = "welcome", score = 0 }
+    game = { state = "welcome" }
     init_states()
     init_ground()
     init_clouds()
@@ -190,9 +203,9 @@ end
 
 function kill_cowboy(cowboy)
     if (cowboy.state == "dying" or cowboy.state == "dead") then return end
-    cowboy.velocity = { x = cowboy.velocity.x * 0.75, y = 0 }
-    cowboy.acceleration = { x = 0, y = 0 }
-    cowboy.position.y = ground.y - 21
+    cowboy.velocity = { x = cowboy.velocity.x * 0.75, y = cowboy.state == "jump" and 2 or 0 }
+    cowboy.acceleration = { x = 0, y = cowboy.state == "jump" and 2 or 0 }
+    cowboy.position.y = cowboy.state == "jump" and min(cowboy.position.y + cowboy.velocity.y, ground.y - 21) or ground.y - 21
     cowboy.state = "dying"
     cowboy.death_clock = 2
     sfx(26)
@@ -218,16 +231,38 @@ function update_projectile_death(projectile, cowboy)
     return false
 end
 
+function magnitude(v)
+    return sqrt(v.x * v.x + v.y * v.y)
+end
+
 function update_melee_death()
     if (bandit.state ~= "dying" and bandit.state ~= "dead" and check_collision(bandit.box, hero.box)) then 
+        if (magnitude(hero.velocity) <= magnitude(bandit.velocity)) then
+            kill_cowboy(hero)
+            return true
+        else 
+            kill_cowboy(bandit)
+            game.score +=1 
+            return false
+        end
+    end
+    return false
+end
+
+function update_eagle_death()
+    if (check_collision(eagle.box, hero.box)) then
         kill_cowboy(hero)
-        return true;
+        add(bloods, make_blood(eagle.projectile))
+        return true
     end
     return false
 end
 
 function check_game_over()
     if (hero.state == "dead" or innocent.state == "dead") then
+        if (bandit.state == "dying") then expire_cowboy(bandit) end
+        if (hero.state == "dying") then expire_cowboy(hero) end
+        if (innocent.state == "dying") then expire_cowboy(innocent) end
         game.state = "loss"
     end
 end
@@ -279,6 +314,10 @@ function update_input()
 end
 
 function update_instructions_input()
+    if (game.loss_cooloff.elapsed < game.loss_cooloff.length) then
+        game.loss_cooloff.elapsed += timer.elapsed
+        return
+    end
     if (btnp() ~= 0) then
         game.state = "play"
         init_game()
@@ -304,18 +343,39 @@ function innocent_act()
     if (rnd(1) < 0.05) then innocent.face_left = not innocent.face_left end
 end
 
-function reset_actor(actor, velocity, max_distance)
+function eagle_act(eagle)
+    eagle.projectile.position = { x = eagle.position.x, y = eagle.position.y + eagle.box.h }
+
+    if (eagle.state == "divebomb") then 
+        local target_height = ground.y - 27
+        eagle.acceleration.y = max(0, eagle.acceleration.y - 0.01)
+        if (eagle.position.y > target_height or eagle.position.y < 0) then
+            eagle.acceleration.y = 0
+            eagle.velocity.y = 0
+            eagle.position.y = target_height
+        end
+        return 
+    end
+    if (eagle.position.x <= 96 and rnd(1) < 0.2) then
+        eagle.state = "divebomb"
+        eagle.acceleration.y = 0.5
+        sfx(27)
+    end
+end
+
+function reset_actor(actor, state, velocity, position)
     if (actor.box.x + actor.box.w < -8) then 
-        actor.position.x = 130 + flr(rnd(max_distance)) 
-        actor.position.y = ground.y - 30
+        actor.position = position
         actor.velocity = velocity
-        actor.state = "ground"
+        actor.acceleration = { x = 0, y = 0 }
+        actor.state = state
     end
 end
 
 function reset_actors_out_of_bounds()
-    reset_actor(bandit, { x = -2 - rnd(0.5), y = 0 }, 96)
-    reset_actor(innocent, { x = -1, y = 0}, 256)
+    reset_actor(bandit, "ground", { x = -2 - rnd(0.5), y = 0 }, { x = 130 + flr(rnd(96)), y = ground.y - 30 })
+    reset_actor(innocent, "ground", { x = -1, y = 0}, { x = 130 + flr(rnd(256)), y = ground.y - 30})
+    reset_actor(eagle, "soar", { x = -3, y = 0 }, { x = 384 + flr(rnd(256)), y = flr(rnd(28)) + 1})
 end
 
 function update_timer()
@@ -325,6 +385,12 @@ end
 
 function update_frame(animated_element)
     return (animated_element.frame + animated_element.frame_step) % animated_element.frame_count
+end
+
+function update_eagle_box(eagle)
+    local box = {}
+    box = { x = eagle.position.x, y = eagle.position.y, w = 14, h = 8 }
+    return box
 end
 
 function update_cowboy_box(cowboy)
@@ -343,37 +409,42 @@ function update_cowboy_box(cowboy)
     return box
 end
 
-function update_cowboy(cowboy)
-    cowboy.animation.elapsed += timer.elapsed
+function expire_cowboy(cowboy)
+    cowboy.state = "dead" 
+    cowboy.position.y = ground.y - 13
+    cowboy.velocity = { x = -1, y = 0 }
+    cowboy.acceleration = { x = 0, y = 0 }
+end
 
-    if (cowboy.animation.elapsed >= cowboy.animation.length) then
-        for k,v in pairs(cowboy.elements) do
-            cowboy.elements[k].frame = update_frame(v)
+function update_actor(actor)
+    actor.animation.elapsed += timer.elapsed
+
+    if (actor.animation.elapsed >= actor.animation.length) then
+        for k,v in pairs(actor.elements) do
+            actor.elements[k].frame = update_frame(v)
         end
-        if (cowboy.state == "dying") then 
-            cowboy.death_clock -= 1
-            if (cowboy.death_clock <= 0) then
-                cowboy.state = "dead" 
-                cowboy.position.y = ground.y - 13;
-                cowboy.velocity.x = -1;
+        if (actor.state == "dying") then 
+            actor.death_clock -= 1
+            if (actor.death_clock <= 0) then
+                expire_cowboy(actor)
             end
         end
-        cowboy.animation.elapsed = 0
+        actor.animation.elapsed = 0
     end
 
-    cowboy.position.x += cowboy.velocity.x
-    cowboy.position.y += cowboy.velocity.y
-    cowboy.velocity.y += cowboy.acceleration.y
-    cowboy.box = update_cowboy_box(cowboy)
-    if (cowboy.position.y + 30 >= ground.y and cowboy.state == "jump") then
-        cowboy.velocity.y = 0
-        cowboy.acceleration.y = 0
-        cowboy.position.y = ground.y - 30
-        cowboy.state = "ground"
+    actor.box = actor.update_box_fn(actor)
+    actor.position.x += actor.velocity.x
+    actor.position.y += actor.velocity.y
+    actor.velocity.y += actor.acceleration.y
+    if (actor.position.y + 30 >= ground.y and actor.state == "jump") then
+        actor.velocity.y = 0
+        actor.acceleration.y = 0
+        actor.position.y = ground.y - 30
+        actor.state = "ground"
     end
 
-    if (update_projectile(cowboy.projectile)) then
-        cowboy.projectile = make_projectile(cowboy)
+    if (update_projectile(actor.projectile)) then
+        actor.projectile = make_projectile(actor)
     end
 end
 
@@ -412,18 +483,20 @@ function update_clouds()
 end
 
 function _update()
+    update_timer()
     if (game.state == "play") then    
-        update_timer()
-        update_cowboy(hero)
-        update_cowboy(bandit)
-        update_cowboy(innocent)
+        update_actor(hero)
+        update_actor(bandit)
+        update_actor(innocent)
+        update_actor(eagle)
         update_input()
-        if (update_projectile_death(hero.projectile, bandit)) then game.score += 1 end
+        if (update_projectile_death(hero.projectile, bandit) and not dead_states[bandit.state]) then game.score += 1 end
         if (update_projectile_death(hero.projectile, innocent) and not game.loss_reason) then game.loss_reason = "you killed an innocent" end
-        if (update_projectile_death(bandit.projectile, hero) or update_melee_death() and not game.loss_reason) then game.loss_reason = "you're dead" end 
+        if (update_projectile_death(bandit.projectile, hero) or update_melee_death() or update_eagle_death() and not game.loss_reason) then game.loss_reason = "you're dead" end 
         check_game_over()
         bandit_act(bandit)
         innocent_act()
+        eagle_act(eagle)
         update_ground()
         reset_actors_out_of_bounds()
     else 
@@ -449,14 +522,14 @@ function draw_frame(animated_element, x, y, scale_height, flip_x)
     pal()
 end
 
-function draw_cowboy(cowboy)
-    local x = cowboy.position.x
-    local y = cowboy.position.y
+function draw_actor(actor)
+    local x = actor.position.x
+    local y = actor.position.y
 
-    draw_projectile(cowboy.projectile)
-    for element in all(cowboy.elements) do
-        if (element.states[cowboy.state]) then
-            draw_frame(element, x + (cowboy.face_left and -1 or 1) * element.position.x, y + element.position.y, element.scale_height or 1, cowboy.face_left)
+    draw_projectile(actor.projectile)
+    for element in all(actor.elements) do
+        if (element.states[actor.state]) then
+            draw_frame(element, x + (actor.face_left and -1 or 1) * element.position.x, y + element.position.y, element.scale_height or 1, actor.face_left)
         end
     end
 end
@@ -497,9 +570,10 @@ function draw_blood()
 end
 
 function draw_instructions()
+    local cooloff = ceil((game.loss_cooloff.length - game.loss_cooloff.elapsed) / 0.5)
     local text = game.state == "welcome" and 
-        { "the law of the west", "kill or avoid your enemies", "spare the innocent", "", "press a button to start" } 
-    or { "game over", game.loss_reason, "", "press a button to restart" }
+        { "the law of the west", "kill or avoid your enemies", "spare the innocent", "", cooloff > 0 and "get ready "..cooloff or "press a button to start" } 
+    or { "game over", game.loss_reason, "", cooloff > 0 and "get ready "..cooloff or "press a button to restart" }
     
     for i=1,#text do
         print(text[i], 64 - (#text[i] * 4) / 2, 40 + i * 8, i == 1 and 2 or 7)
@@ -517,9 +591,10 @@ function _draw()
     draw_clouds()
 
     if (game.state == "play" or game.state == "loss") then
-        draw_cowboy(innocent)
-        draw_cowboy(bandit)
-        draw_cowboy(hero)
+        draw_actor(innocent)
+        draw_actor(bandit)
+        draw_actor(hero)
+        draw_actor(eagle)
         draw_blood()
         draw_score()
     end
@@ -553,6 +628,14 @@ __gfx__
 50000c00005c00000c000c000c0000c0000000c00c0000c000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000c00000c0000005000550500000c5000000c00c0000c000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00005500005500000050000050000050000000555500005500000000000000000000000000000000000000000000000000000000000000000000000000000000
+44400660000006600000066000000660000006600000066000000006000000000000000000000000000000000000000000000000000000000000000000000000
+44440650444006500000065000000650000006504440065000006440000000060000000000000000000000000000000600000000000000000000000000000000
+42224699422246992222469922224699222246994222469900000444000000240000060400000002000006040000002400000000000000000000000000000000
+44222409444224094422240922222409442224094442240900000044000064440000622200006222000062220000644400000000000000000000000000000000
+42222200442222004422220044422200442222004422220000006224000064440000024400000624000002440000644400000000000000000000000000000000
+22220000422200004222400044224000422240004222000000000622000006240000444400000004000044440000062400000000000000000000000000000000
+09090000090900000909000049494000090900000909000000000000000000000000644400000044000064440000000000000000000000000000000000000000
+00909000009090000909000049090000009090000090900000000000000000000000060000000664000006000000000000000000000000000000000000000000
 __label__
 11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
 12221222122112211222122211111222112212211212111111221122121212211222111111111222111111111111111111111111111111111111111111111111
@@ -711,6 +794,7 @@ __sfx__
 0110000024625186010c6010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0101000012124111211012110121101210f1210f1210f1210f1210f1210f1210f1211012110121111211112112121131211512118121191211b1211e12120121221212412126121281212a1212c1212d1212f121
 01090000180531503111011000000c053000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+01030000345543b5513a5513a5513a55139541385413854137541365313453133531315312f5212d5212c52129521275212552123521205211d51118511135110e51109511055110451104511035110351500500
 __music__
 00 00014344
 00 00014344
