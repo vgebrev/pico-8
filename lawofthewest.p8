@@ -207,9 +207,10 @@ end
 
 function kill_cowboy(cowboy)
   if (cowboy.state == "dying" or cowboy.state == "dead") then return end
+  
   cowboy.velocity = { x = cowboy.velocity.x * 0.75, y = cowboy.state == "jump" and 2 or 0 }
   cowboy.acceleration = { x = 0, y = cowboy.state == "jump" and 2 or 0 }
-  cowboy.position.y = cowboy.state == "jump" and min(cowboy.position.y + cowboy.velocity.y, ground.y - 21) or ground.y - 21
+  cowboy.position.y = cowboy.state == "jump" and min(cowboy.position.y, ground.y - 21) or ground.y - 21
   cowboy.state = "dying"
   cowboy.death_clock = 2
   sfx(26)
@@ -264,9 +265,9 @@ end
 
 function update_game_over()
   if (hero.state == "dead" or innocent.state == "dead") then
-    if (bandit.state == "dying") then expire_cowboy(bandit) end
-    if (hero.state == "dying") then expire_cowboy(hero) end
-    if (innocent.state == "dying") then expire_cowboy(innocent) end
+    if (bandit.state == "dying") then expire_actor(bandit) end
+    if (hero.state == "dying") then expire_actor(hero) end
+    if (innocent.state == "dying") then expire_actor(innocent) end
     game.state = "loss"
   end
 end
@@ -391,7 +392,7 @@ end
 
 function update_eagle_box(eagle)
   local box = {}
-  box = { x = eagle.position.x, y = eagle.position.y, w = 14, h = 8 }
+  box = { x = eagle.position.x, y = eagle.position.y, w = 12, h = 8 }
   return box
 end
 
@@ -411,11 +412,11 @@ function update_cowboy_box(cowboy)
   return box
 end
 
-function expire_cowboy(cowboy)
-  cowboy.state = "dead" 
-  cowboy.position.y = ground.y - 13
-  cowboy.velocity = { x = -1, y = 0 }
-  cowboy.acceleration = { x = 0, y = 0 }
+function expire_actor(actor)
+  actor.state = "dead" 
+  actor.position.y = ground.y - 13
+  actor.velocity = { x = -1, y = 0 }
+  actor.acceleration = { x = 0, y = 0 }
 end
 
 function move_object(object)
@@ -438,7 +439,7 @@ function update_actor(actor)
     if (actor.state == "dying") then 
       actor.death_clock -= 1
       if (actor.death_clock <= 0) then
-        expire_cowboy(actor)
+        expire_actor(actor)
       end
     end
     actor.animation.elapsed = 0
@@ -447,11 +448,13 @@ function update_actor(actor)
   actor.box = actor.update_box_fn(actor)
   move_object(actor)
 
-  if (actor.position.y + 30 >= ground.y and actor.state == "jump") then
-    actor.velocity.y = 0
-    actor.acceleration.y = 0
+  if (actor.position.y + actor.box.h >= ground.y) then
     actor.position.y = ground.y - 30
-    actor.state = "ground"
+    if (actor.state == "jump") then
+      actor.velocity.y = 0
+      actor.acceleration.y = 0
+      actor.state = "ground"
+    end
   end
 
   if (update_projectile(actor.projectile)) then
@@ -546,6 +549,11 @@ function draw_actor(actor)
       draw_frame(element, x + (actor.face_left and -1 or 1) * element.position.x, y + element.position.y, element.scale_height or 1, actor.face_left)
     end
   end
+end
+
+function draw_actor_box(actor)
+  rect(actor.box.x, actor.box.y, actor.box.x + actor.box.w, actor.box.y + actor.box.h, 0)
+  pset(actor.position.x, actor.position.y, 6)
 end
 
 function draw_projectile(projectile)
