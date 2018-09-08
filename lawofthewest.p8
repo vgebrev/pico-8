@@ -5,623 +5,617 @@ __lua__
 -- by vgebrev
 
 function make_actor(state, position, velocity, face_left, update_box_fn, behaviour_fn)
-    local actor = {}
-    actor.animation = { length = 0.068, elapsed = 0}
-    actor.state = state
-    actor.position = position
-    actor.velocity = velocity
-    actor.acceleration = { x = 0, y = 0}
-    actor.death_clock = 2
-    actor.face_left = face_left
-    actor.box = update_box_fn(actor)
-    actor.update_box_fn = update_box_fn
-    actor.behaviour_fn = behaviour_fn
-    actor.projectile = make_projectile(actor)
-    return actor
+  local actor = {}
+  actor.animation = { length = 0.068, elapsed = 0}
+  actor.state = state
+  actor.position = position
+  actor.velocity = velocity
+  actor.acceleration = { x = 0, y = 0}
+  actor.death_clock = 2
+  actor.face_left = face_left
+  actor.box = update_box_fn(actor)
+  actor.update_box_fn = update_box_fn
+  actor.behaviour_fn = behaviour_fn
+  actor.projectile = make_projectile(actor)
+  return actor
 end
 
 function make_projectile(actor)
-    local projectile = {}
-    projectile.position = { x = actor.position.x + (actor.face_left and -10 or 10), y = actor.position.y + 12 }
-    projectile.velocity = { x = actor.face_left and -6 or 6, y = 0}
-    projectile.sprite = 18
-    projectile.fired = false
-    projectile.face_left = actor.face_left
-    projectile.box = update_projectile_box(projectile)
-    return projectile
+  local projectile = {}
+  projectile.position = { x = actor.position.x + (actor.face_left and -10 or 10), y = actor.position.y + 12 }
+  projectile.velocity = { x = actor.face_left and -6 or 6, y = 0}
+  projectile.sprite = 18
+  projectile.fired = false
+  projectile.face_left = actor.face_left
+  projectile.box = update_projectile_box(projectile)
+  return projectile
 end
 
 function make_eagle(position, velocity)
-    local eagle = {}
-    eagle = make_actor("soar", position, velocity, true, update_eagle_box, behaviour_eagle)
-    eagle.elements = {
-        --head 
-        { states = alive_states, frame = 0, frame_step = 1, frame_count = 6, spr_offset = 48, position = { x = 0, y = 0 } },
-        --tail
-        { states = alive_states, frame = 0, frame_step = 1, frame_count = 6, spr_offset = 54, position = { x = -8, y = 0 } },
-    }
-    return eagle
+  local eagle = {}
+  eagle = make_actor("soar", position, velocity, true, update_eagle_box, behaviour_eagle)
+  eagle.elements = {
+    --head 
+    { states = alive_states, frame = 0, frame_step = 1, frame_count = 6, spr_offset = 48, position = { x = 0, y = 0 } },
+    --tail
+    { states = alive_states, frame = 0, frame_step = 1, frame_count = 6, spr_offset = 54, position = { x = -8, y = 0 } },
+  }
+  return eagle
 end
 
 function make_innocent(position, shirt_color, legs_color)
-    local innocent = {}
-    innocent = make_actor("ground", position, { x = -1, y = 0 }, true, update_cowboy_box, behaviour_innocent)
-    innocent.elements = {
-        --head
-        { states = alive_states, frame = 0, frame_step = 0, frame_count = 1, spr_offset = 22, p = { { c1 = 8, c2 = 0 } }, position = { x = 0, y = 7 } },
-        --upright_torso 
-        { states = upright_states, frame = 0, frame_step = 0, frame_count = 1, spr_offset = 21, p = { { c1 = 3, c2 = shirt_color } }, position = { x = 0, y = 14 } },
-        --upright_legs
-        { states = upright_states, frame = 0, frame_step = 0, frame_count = 1, spr_offset = 37, p = { { c1 = 12, c2 = legs_color } }, position = { x = 0, y = 22 } },
-        --crouch_torso
-        { states = crouch_states, frame = 0, frame_step = 0, frame_count = 1, spr_offset = 21, p = { { c1 = 3, c2 = shirt_color } }, position = { x = 0, y = 15 }, scale_height = 0.4 },
-        --crouch_legs
-        { states = crouch_states, frame = 0, frame_step = 0, frame_count = 1, spr_offset = 37, p = { { c1 = 12, c2 = legs_color } }, position = { x = 0, y = 18 }, scale_height = 0.4 },
-        --dead_hat
-        { states = dead_states, frame = 0, frame_step = 0, frame_count = 1, spr_offset = 14, position = { x = 1, y = 1 } },
-        --dead_head
-        { states = dead_states, frame = 0, frame_step = 0, frame_count = 1, spr_offset = 10, p = { { c1 = 8, c2 = 0 } }, position = { x = 1, y = 7 } },
-        --dead_torso
-        { states = dead_states, frame = 0, frame_step = 0, frame_count = 1, spr_offset = 24, p = { { c1 = 3, c2 = shirt_color } }, position = { x = -5, y = 6 } },
-        --dead_legs 
-        { states = dead_states, frame = 0, frame_step = 0, frame_count = 1, spr_offset = 23, p = { { c1 = 12, c2 = legs_color } }, position = { x = -13, y = 6 } },
-    }
-    return innocent
+  local innocent = {}
+  innocent = make_actor("ground", position, { x = -1, y = 0 }, true, update_cowboy_box, behaviour_innocent)
+  innocent.elements = {
+    --head
+    { states = alive_states, frame = 0, frame_step = 0, frame_count = 1, spr_offset = 22, p = { { c1 = 8, c2 = 0 } }, position = { x = 0, y = 7 } },
+    --upright_torso 
+    { states = upright_states, frame = 0, frame_step = 0, frame_count = 1, spr_offset = 21, p = { { c1 = 3, c2 = shirt_color } }, position = { x = 0, y = 14 } },
+    --upright_legs
+    { states = upright_states, frame = 0, frame_step = 0, frame_count = 1, spr_offset = 37, p = { { c1 = 12, c2 = legs_color } }, position = { x = 0, y = 22 } },
+    --crouch_torso
+    { states = crouch_states, frame = 0, frame_step = 0, frame_count = 1, spr_offset = 21, p = { { c1 = 3, c2 = shirt_color } }, position = { x = 0, y = 15 }, scale_height = 0.4 },
+    --crouch_legs
+    { states = crouch_states, frame = 0, frame_step = 0, frame_count = 1, spr_offset = 37, p = { { c1 = 12, c2 = legs_color } }, position = { x = 0, y = 18 }, scale_height = 0.4 },
+    --dead_hat
+    { states = dead_states, frame = 0, frame_step = 0, frame_count = 1, spr_offset = 14, position = { x = 1, y = 1 } },
+    --dead_head
+    { states = dead_states, frame = 0, frame_step = 0, frame_count = 1, spr_offset = 10, p = { { c1 = 8, c2 = 0 } }, position = { x = 1, y = 7 } },
+    --dead_torso
+    { states = dead_states, frame = 0, frame_step = 0, frame_count = 1, spr_offset = 24, p = { { c1 = 3, c2 = shirt_color } }, position = { x = -5, y = 6 } },
+    --dead_legs 
+    { states = dead_states, frame = 0, frame_step = 0, frame_count = 1, spr_offset = 23, p = { { c1 = 12, c2 = legs_color } }, position = { x = -13, y = 6 } },
+  }
+  return innocent
 end
 
 function make_cowboy(position, velocity, face_left, shirt_color, legs_color, legs_sprite_offset, head_sprite_offset, behaviour_fn)
-    local cowboy = {}
-    cowboy = make_actor("ground", position, velocity, face_left, update_cowboy_box, behaviour_fn)
-    cowboy.elements = { 
-        --hat
-        { states = alive_states, frame = 0, frame_step = 0.5, frame_count = 2, spr_offset = 14, position = { x = 1, y = 1 }  },
-        --head
-        { states = alive_states, frame = 0, frame_step = 1, frame_count = 4, spr_offset = head_sprite_offset, p = { { c1 = 8, c2 = 0 } }, position = { x = 1, y = 7 }  },
-        --upright_torso
-        { states = upright_states, frame = 0, frame_step = 1, frame_count = 5, spr_offset =  5, p = { { c1 = 3, c2 = shirt_color } }, position = { x = 0, y = 14 } },
-        --upright_legs
-        { states = upright_states, frame = 0, frame_step = 1, frame_count = 5, spr_offset = legs_sprite_offset, p = { { c1 = 12, c2 = legs_color }}, position = { x = 0, y = 22 } },
-        --crouch_torso
-        { states = crouch_states, frame = 0, frame_step = 1, frame_count = 5, spr_offset =  5, p = { { c1 = 3, c2 = shirt_color } }, position = { x = 0, y = 15 }, scale_height = 0.4 },
-        --crouch_legs
-        { states = crouch_states, frame = 0, frame_step = 1, frame_count = 5, spr_offset = legs_sprite_offset, p = { { c1 = 12, c2 = legs_color } }, position = { x = 0, y = 18 }, scale_height = 0.4 },
-        --dead_hat
-        { states = dead_states, frame = 0, frame_step = 0, frame_count = 1, spr_offset = 14, position = { x = 1, y = 1 } },
-        --dead_head
-        { states = dead_states, frame = 0, frame_step = 0, frame_count = 1, spr_offset = head_sprite_offset, p = { { c1 = 8, c2 = 0 } }, position = { x = 1, y = 7 } },
-        --dead_torso
-        { states = dead_states, frame = 0, frame_step = 0, frame_count = 1, spr_offset = 24, p = { { c1 = 3, c2 = shirt_color } }, position = { x = -5, y = 6 } },
-        --dead_legs
-        { states = dead_states, frame = 0, frame_step = 0, frame_count = 1, spr_offset = 23, p = { { c1 = 12, c2 = legs_color } }, position = { x = -13, y = 6 } },
-        --gun
-        { states = alive_states, frame = 0, frame_step = 0.2, frame_count = 2, spr_offset = 16, position = { x = 6, y = 13 } },
-    }
-    return cowboy;
+  local cowboy = {}
+  cowboy = make_actor("ground", position, velocity, face_left, update_cowboy_box, behaviour_fn)
+  cowboy.elements = { 
+    --hat
+    { states = alive_states, frame = 0, frame_step = 0.5, frame_count = 2, spr_offset = 14, position = { x = 1, y = 1 }  },
+    --head
+    { states = alive_states, frame = 0, frame_step = 1, frame_count = 4, spr_offset = head_sprite_offset, p = { { c1 = 8, c2 = 0 } }, position = { x = 1, y = 7 }  },
+    --upright_torso
+    { states = upright_states, frame = 0, frame_step = 1, frame_count = 5, spr_offset =  5, p = { { c1 = 3, c2 = shirt_color } }, position = { x = 0, y = 14 } },
+    --upright_legs
+    { states = upright_states, frame = 0, frame_step = 1, frame_count = 5, spr_offset = legs_sprite_offset, p = { { c1 = 12, c2 = legs_color }}, position = { x = 0, y = 22 } },
+    --crouch_torso
+    { states = crouch_states, frame = 0, frame_step = 1, frame_count = 5, spr_offset =  5, p = { { c1 = 3, c2 = shirt_color } }, position = { x = 0, y = 15 }, scale_height = 0.4 },
+    --crouch_legs
+    { states = crouch_states, frame = 0, frame_step = 1, frame_count = 5, spr_offset = legs_sprite_offset, p = { { c1 = 12, c2 = legs_color } }, position = { x = 0, y = 18 }, scale_height = 0.4 },
+    --dead_hat
+    { states = dead_states, frame = 0, frame_step = 0, frame_count = 1, spr_offset = 14, position = { x = 1, y = 1 } },
+    --dead_head
+    { states = dead_states, frame = 0, frame_step = 0, frame_count = 1, spr_offset = head_sprite_offset, p = { { c1 = 8, c2 = 0 } }, position = { x = 1, y = 7 } },
+    --dead_torso
+    { states = dead_states, frame = 0, frame_step = 0, frame_count = 1, spr_offset = 24, p = { { c1 = 3, c2 = shirt_color } }, position = { x = -5, y = 6 } },
+    --dead_legs
+    { states = dead_states, frame = 0, frame_step = 0, frame_count = 1, spr_offset = 23, p = { { c1 = 12, c2 = legs_color } }, position = { x = -13, y = 6 } },
+    --gun
+    { states = alive_states, frame = 0, frame_step = 0.2, frame_count = 2, spr_offset = 16, position = { x = 6, y = 13 } },
+  }
+  return cowboy;
 end
 
 function make_blood(projectile)
-    local blood={}
-    for i=0,32 do
-        local drop = {}
-        drop.position = { x = projectile.position.x + i % 4, y = projectile.position.y + flr(i / 4) }
-        drop.velocity = { x = (projectile.face_left and 1 or -1) * min(0, projectile.velocity.x / 4 - rnd(2)), y = 2 - rnd(6) }
-        drop.acceleration = { x = (projectile.face_left and 1 or -1) * -0.1, y = 0.5}
-        drop.life = 32 + flr(rnd(24))
-        drop.color = rnd(1) < 0.9 and 8 or 14
-        add(blood, drop)
-    end
-    return blood
+  local blood={}
+  for i=0,32 do
+    local drop = {}
+    drop.position = { x = projectile.position.x + i % 4, y = projectile.position.y + flr(i / 4) }
+    drop.velocity = { x = (projectile.face_left and 1 or -1) * min(0, projectile.velocity.x / 4 - rnd(2)), y = 2 - rnd(6) }
+    drop.acceleration = { x = (projectile.face_left and 1 or -1) * -0.1, y = 0.5}
+    drop.life = 32 + flr(rnd(24))
+    drop.color = rnd(1) < 0.9 and 8 or 14
+    add(blood, drop)
+  end
+  return blood
 end
 
 function make_ground()
-    local column = {}
-    for grass=1,flr(rnd(4))+1 do
-        add(column, 11)
-    end
-    for grass_shade=1,flr(rnd(3))+1 do
-        add(column, 3)
-    end
-    for earth=1,14 do
-        add(column, (flr(rnd(2)) + 1)*2)
-    end
-    return column
+  local column = {}
+  for grass=1,flr(rnd(4))+1 do
+    add(column, 11)
+  end
+  for grass_shade=1,flr(rnd(3))+1 do
+    add(column, 3)
+  end
+  for earth=1,14 do
+    add(column, (flr(rnd(2)) + 1)*2)
+  end
+  return column
 end
 
 function init_ground()
-    ground = {}
-    ground.y = 112
-    ground.columns = {}
-    for i=1,128 do
-        add(ground.columns, make_ground())
-    end
+  ground = {}
+  ground.y = 112
+  ground.columns = {}
+  for i=1,128 do
+    add(ground.columns, make_ground())
+  end
 end
 
 function make_cloud()
-    local cloud = {}
-    local puff_count = flr(rnd(3)) + 3
-    local base_radius = flr(rnd(5)) + 10 
-    cloud.velocity = { x = rnd(0.4) + 0.1, y = 0}
-    cloud.position = { x = -1 * (puff_count + 1) * base_radius, y = flr(rnd(40)) }
-    cloud.puffs = {}
-    for i=1,puff_count do
-        add(cloud.puffs, { x = i * base_radius - 3, y = 0, radius = base_radius * (1 - rnd(0.3))}) 
-    end
-    return cloud
+  local cloud = {}
+  local puff_count = flr(rnd(3)) + 3
+  local base_radius = flr(rnd(5)) + 10 
+  cloud.velocity = { x = rnd(0.4) + 0.1, y = 0}
+  cloud.position = { x = -1 * (puff_count + 1) * base_radius, y = flr(rnd(40)) }
+  cloud.puffs = {}
+  for i=1,puff_count do
+    add(cloud.puffs, { x = i * base_radius - 3, y = 0, radius = base_radius * (1 - rnd(0.3))}) 
+  end
+  return cloud
 end
 
 function init_clouds()
-    clouds = {}
-    add(clouds, make_cloud())
-    add(clouds, make_cloud())
+  clouds = {}
+  add(clouds, make_cloud())
+  add(clouds, make_cloud())
 end
 
 function set_states(states)
-    local result = {}
-    for state in all(states) do
-        result[state] = true
-    end
-    return result
+  local result = {}
+  for state in all(states) do
+    result[state] = true
+  end
+  return result
 end
 
 function init_states()
-    alive_states = set_states({ "ground", "jump", "dying", "crouch", "soar", "divebomb" })
-    upright_states = set_states({ "ground", "jump" })
-    crouch_states = set_states({ "dying", "crouch" })
-    dead_states = set_states({ "dead" })
+  alive_states = set_states({ "ground", "jump", "dying", "crouch", "soar", "divebomb" })
+  upright_states = set_states({ "ground", "jump" })
+  crouch_states = set_states({ "dying", "crouch" })
+  dead_states = set_states({ "dead" })
 end
 
 function init_game()
-    game.score = 0
-    game.loss_reason = nil
-    game.loss_cooloff = { length = 1.5, elapsed = 0 }
-    timer = { elapsed = 0, last = time() }
-    bloods = {}
-    actors = {
-        make_cowboy({ x = 12, y = 82 }, { x = 0, y = 0 }, false, 3, 12, 0, 10),
-        make_cowboy({ x = 130, y = 82 }, { x = -2.25, y = 0 }, true, 5, 3, 32, 26, behaviour_bandit),
-        make_innocent({ x = 160, y = 82 }, 5, 3),
-        make_eagle({ x = 256, y = 16 }, { x = -3, y = 0 })
-    }
-    hero = actors[1]
-    bandit = actors[2]
-    innocent = actors[3]
-    eagle = actors[4]
+  game.score = 0
+  game.loss_reason = nil
+  game.loss_cooloff = { length = 1.5, elapsed = 0 }
+  timer = { elapsed = 0, last = time() }
+  bloods = {}
+  actors = {
+    make_cowboy({ x = 12, y = 82 }, { x = 0, y = 0 }, false, 3, 12, 0, 10),
+    make_cowboy({ x = 130, y = 82 }, { x = -2.25, y = 0 }, true, 5, 3, 32, 26, behaviour_bandit),
+    make_innocent({ x = 160, y = 82 }, 5, 3),
+    make_eagle({ x = 256, y = 16 }, { x = -3, y = 0 })
+  }
+  hero = actors[1]
+  bandit = actors[2]
+  innocent = actors[3]
+  eagle = actors[4]
 end
 
 
 function _init()
-    game = { state = "welcome" }
-    init_states()
-    init_ground()
-    init_clouds()
-    init_game()
-    --music(0)
+  game = { state = "welcome" }
+  init_states()
+  init_ground()
+  init_clouds()
+  init_game()
+  music(0)
 end
 
 function jump_cowboy(cowboy)
-    cowboy.velocity.y = -13
-    cowboy.acceleration.y = 2
-    cowboy.state = "jump"
-    sfx(25)
+  cowboy.velocity.y = -13
+  cowboy.acceleration.y = 2
+  cowboy.state = "jump"
+  sfx(25)
 end
 
 function kill_cowboy(cowboy)
-    if (cowboy.state == "dying" or cowboy.state == "dead") then return end
-    cowboy.velocity = { x = cowboy.velocity.x * 0.75, y = cowboy.state == "jump" and 2 or 0 }
-    cowboy.acceleration = { x = 0, y = cowboy.state == "jump" and 2 or 0 }
-    cowboy.position.y = cowboy.state == "jump" and min(cowboy.position.y + cowboy.velocity.y, ground.y - 21) or ground.y - 21
-    cowboy.state = "dying"
-    cowboy.death_clock = 2
-    sfx(26)
+  if (cowboy.state == "dying" or cowboy.state == "dead") then return end
+  cowboy.velocity = { x = cowboy.velocity.x * 0.75, y = cowboy.state == "jump" and 2 or 0 }
+  cowboy.acceleration = { x = 0, y = cowboy.state == "jump" and 2 or 0 }
+  cowboy.position.y = cowboy.state == "jump" and min(cowboy.position.y + cowboy.velocity.y, ground.y - 21) or ground.y - 21
+  cowboy.state = "dying"
+  cowboy.death_clock = 2
+  sfx(26)
 end
 
 function check_collision(box1, box2)
-    if (box1.x < box2.x + box2.w 
-        and box1.x + box1.w > box2.x
-        and box1.y < box2.y + box2.h
-        and box1.y + box1.h > box2.y) then
-        return true
-    end
-    return false
+  if (box1.x < box2.x + box2.w 
+    and box1.x + box1.w > box2.x
+    and box1.y < box2.y + box2.h
+    and box1.y + box1.h > box2.y) then
+    return true
+  end
+  return false
 end
 
 function check_projectile_death(projectile, cowboy)
-    if (projectile.fired and check_collision(projectile.box, cowboy.box)) then
-        kill_cowboy(cowboy)
-        add(bloods, make_blood(projectile))
-        projectile.position.x = projectile.face_left and 0 or 127
-        return true
-    end
-    return false
+  if (projectile.fired and check_collision(projectile.box, cowboy.box)) then
+    kill_cowboy(cowboy)
+    add(bloods, make_blood(projectile))
+    projectile.position.x = projectile.face_left and 0 or 127
+    return true
+  end
+  return false
 end
 
 function vector_magnitude(v)
-    return sqrt(v.x * v.x + v.y * v.y)
+  return sqrt(v.x * v.x + v.y * v.y)
 end
 
 function vector_add(v1, v2)
-    return { x = v1.x + v2.x, y = v1.y + v2.y }
+  return { x = v1.x + v2.x, y = v1.y + v2.y }
 end
 
 function check_melee_death()
-    if (bandit.state ~= "dying" and bandit.state ~= "dead" and check_collision(bandit.box, hero.box)) then 
-        if (vector_magnitude(hero.velocity) <= vector_magnitude(bandit.velocity)) then
-            kill_cowboy(hero)
-            return true
-        else 
-            kill_cowboy(bandit)
-            game.score +=1 
-            return false
-        end
-    end
+  if (bandit.state == "dying" or bandit.state == "dead" or not check_collision(bandit.box, hero.box)) then return false end
+  if (vector_magnitude(hero.velocity) <= vector_magnitude(bandit.velocity)) then
+    kill_cowboy(hero)
+    return true
+  else 
+    kill_cowboy(bandit)
+    game.score +=1 
     return false
+  end
 end
 
 function check_eagle_death()
-    if (check_collision(eagle.box, hero.box)) then
-        kill_cowboy(hero)
-        add(bloods, make_blood(eagle.projectile))
-        return true
-    end
-    return false
+  if (not check_collision(eagle.box, hero.box)) then return false end
+  kill_cowboy(hero)
+  add(bloods, make_blood(eagle.projectile))
+  return true
 end
 
 function update_game_over()
-    if (hero.state == "dead" or innocent.state == "dead") then
-        if (bandit.state == "dying") then expire_cowboy(bandit) end
-        if (hero.state == "dying") then expire_cowboy(hero) end
-        if (innocent.state == "dying") then expire_cowboy(innocent) end
-        game.state = "loss"
-    end
+  if (hero.state == "dead" or innocent.state == "dead") then
+    if (bandit.state == "dying") then expire_cowboy(bandit) end
+    if (hero.state == "dying") then expire_cowboy(hero) end
+    if (innocent.state == "dying") then expire_cowboy(innocent) end
+    game.state = "loss"
+  end
 end
 
 function update_blood()
-    for blood in all(bloods) do
-        for drop in all(blood) do
-            if (drop.life > 0) then
-                drop.life -= 1
-                drop.position.x += drop.velocity.x
-                drop.position.y = min(ground.y, drop.position.y + drop.velocity.y)
-                drop.velocity.x += drop.acceleration.x
-                drop.velocity.y += drop.acceleration.y
-
-                if (drop.position.y == ground.y) then
-                    drop.velocity = { x = game.state == "play" and -1 or 0, y = 0 }
-                    drop.acceleration = { x = 0, y = 0 }
-                end
-            else
-                del(blood, drop)
-            end
+  for blood in all(bloods) do
+    for drop in all(blood) do
+      if (drop.life > 0) then
+        drop.life -= 1
+        move_object(drop)
+        drop.position.y = min(ground.y, drop.position.y)
+        if (drop.position.y == ground.y) then
+          drop.velocity = { x = game.state == "play" and -1 or 0, y = 0 }
+          drop.acceleration = { x = 0, y = 0 }
         end
-        if (#blood == 0) then
-            del(bloods, blood)
-        end
+      else
+        del(blood, drop)
+      end
     end
+    if (#blood == 0) then
+      del(bloods, blood)
+    end
+  end
 end
 
 function update_input()
-    if (hero.state == "dead" or hero.state == "dying") then return end
+  if (hero.state == "dead" or hero.state == "dying") then return end
 
-    if (btnp(2) and hero.state == "ground") then
-        jump_cowboy(hero)
-    end
+  if (btnp(2) and hero.state == "ground") then
+    jump_cowboy(hero)
+  end
 
-    if (btn(3) and hero.state != "jump") then
-        hero.position.y = ground.y - 21
-        hero.state = "crouch"
-    elseif (hero.state == "crouch") then
-        hero.position.y = ground.y - 30
-        hero.state = "ground"
-    end 
+  if (btn(3) and hero.state != "jump") then
+    hero.position.y = ground.y - 21
+    hero.state = "crouch"
+  elseif (hero.state == "crouch") then
+    hero.position.y = ground.y - 30
+    hero.state = "ground"
+  end 
 
-    if (btnp(5) and not hero.projectile.fired) then
-        hero.projectile.position.y = hero.position.y + 12
-        hero.projectile.fired = true
-        sfx(24)
-    end
+  if (btnp(5) and not hero.projectile.fired) then
+    hero.projectile.position.y = hero.position.y + 12
+    hero.projectile.fired = true
+    sfx(24)
+  end
 end
 
 function update_instructions_input()
-    if (game.loss_cooloff.elapsed < game.loss_cooloff.length) then
-        game.loss_cooloff.elapsed += timer.elapsed
-        return
-    end
-    if (btnp() ~= 0) then
-        game.state = "play"
-        init_game()
-    end
+  if (game.loss_cooloff.elapsed < game.loss_cooloff.length) then
+    game.loss_cooloff.elapsed += timer.elapsed
+    return
+  end
+  if (btnp() ~= 0) then
+    game.state = "play"
+    init_game()
+  end
 end
 
 function behaviour_bandit(bandit)
-    if (bandit.state == "dead" or bandit.state == "dying") then return end
+  if (bandit.state == "dead" or bandit.state == "dying") then return end
 
-    if (not bandit.projectile.fired and bandit.position.x - hero.position.x >= 56 and rnd(1) < 0.05 and hero.state ~= "jump" and alive_states[hero.state] and bandit.position.x <= 127) then
-        bandit.projectile = make_projectile(bandit)
-        bandit.projectile.fired = true
-        sfx(24)
-    end
+  local dx = bandit.position.x - hero.position.x
+  if (not bandit.projectile.fired and dx >= 56 and rnd(1) < 0.05 and hero.state ~= "jump" and alive_states[hero.state] and bandit.position.x <= 127) then
+    bandit.projectile = make_projectile(bandit)
+    bandit.projectile.fired = true
+    sfx(24)
+  end
 
-    local dx = bandit.position.x - hero.projectile.position.x
-    if (bandit.state == "ground" and hero.projectile.fired and dx <= 32 and dx > 0 and hero.projectile.position.y >= bandit.position.y + 8 and rnd(1) < 0.125) then
-        jump_cowboy(bandit)
-    end
+  dx = bandit.position.x - hero.projectile.position.x
+  if (bandit.state == "ground" and hero.projectile.fired and dx <= 32 and dx > 0 and hero.projectile.position.y >= bandit.position.y + 8 and rnd(1) < 0.125) then
+    jump_cowboy(bandit)
+  end
 end
 
 function behaviour_innocent(innocent)
-    if (rnd(1) < 0.05) then innocent.face_left = not innocent.face_left end
+  if (rnd(1) < 0.05) then innocent.face_left = not innocent.face_left end
 end
 
 function behaviour_eagle(eagle)
-    eagle.projectile.position = { x = eagle.position.x, y = eagle.position.y + eagle.box.h }
+  eagle.projectile.position = { x = eagle.position.x, y = eagle.position.y + eagle.box.h }
 
-    if (eagle.state == "divebomb") then 
-        local target_height = ground.y - 27
-        eagle.acceleration.y = max(0, eagle.acceleration.y - 0.01)
-        if (eagle.position.y > target_height or eagle.position.y < 0) then
-            eagle.acceleration.y = 0
-            eagle.velocity.y = 0
-            eagle.position.y = target_height
-        end
-        return 
+  if (eagle.state == "divebomb") then 
+    local target_height = ground.y - 27
+    eagle.acceleration.y = max(0, eagle.acceleration.y - 0.01)
+    if (eagle.position.y > target_height or eagle.position.y < 0) then
+      eagle.acceleration.y = 0
+      eagle.velocity.y = 0
+      eagle.position.y = target_height
     end
-    if (eagle.position.x <= 96 and rnd(1) < 0.2) then
-        eagle.state = "divebomb"
-        eagle.acceleration.y = 0.5
-        sfx(27)
-    end
+    return 
+  end
+  if (eagle.position.x <= 96 and rnd(1) < 0.2) then
+    eagle.state = "divebomb"
+    eagle.acceleration.y = 0.5
+    sfx(27)
+  end
 end
 
 function reset_actor(actor, state, velocity, position)
-    if (actor.box.x + actor.box.w < -8) then 
-        actor.position = position
-        actor.velocity = velocity
-        actor.acceleration = { x = 0, y = 0 }
-        actor.state = state
-    end
+  if (actor.box.x + actor.box.w < -8) then 
+    actor.position = position
+    actor.velocity = velocity
+    actor.acceleration = { x = 0, y = 0 }
+    actor.state = state
+  end
 end
 
 function reset_actors_out_of_bounds()
-    reset_actor(bandit, "ground", { x = -2 - rnd(0.5), y = 0 }, { x = 130 + flr(rnd(96)), y = ground.y - 30 })
-    reset_actor(innocent, "ground", { x = -1, y = 0}, { x = 130 + flr(rnd(256)), y = ground.y - 30})
-    reset_actor(eagle, "soar", { x = -3, y = 0 }, { x = 384 + flr(rnd(256)), y = flr(rnd(28)) + 1})
+  reset_actor(bandit, "ground", { x = -2 - rnd(0.5), y = 0 }, { x = 130 + flr(rnd(96)), y = ground.y - 30 })
+  reset_actor(innocent, "ground", { x = -1, y = 0}, { x = 130 + flr(rnd(256)), y = ground.y - 30})
+  reset_actor(eagle, "soar", { x = -3, y = 0 }, { x = 384 + flr(rnd(256)), y = flr(rnd(28)) + 1})
 end
 
 function update_timer()
-    timer.elapsed = (time() - timer.last)
-    timer.last = time()
+  timer.elapsed = (time() - timer.last)
+  timer.last = time()
 end
 
 function update_frame(animated_element)
-    return (animated_element.frame + animated_element.frame_step) % animated_element.frame_count
+  return (animated_element.frame + animated_element.frame_step) % animated_element.frame_count
 end
 
 function update_eagle_box(eagle)
-    local box = {}
-    box = { x = eagle.position.x, y = eagle.position.y, w = 14, h = 8 }
-    return box
+  local box = {}
+  box = { x = eagle.position.x, y = eagle.position.y, w = 14, h = 8 }
+  return box
 end
 
 function update_cowboy_box(cowboy)
-    local box = {}
-    box = { x = cowboy.position.x, y = cowboy.position.y + 4 }
-    if (cowboy.state == "ground" or cowboy.state == "jump") then 
-        box.w = 8
-        box.h = 26
-    elseif (cowboy.state == "crouch" or cowboy.state == "dying") then
-        box.w = 8 
-        box.h = 17
-    elseif (cowboy.state == "dead") then
-        box.w = 22
-        box.h = 9
-    end
-    return box
+  local box = {}
+  box = { x = cowboy.position.x, y = cowboy.position.y + 4 }
+  if (cowboy.state == "ground" or cowboy.state == "jump") then 
+    box.w = 8
+    box.h = 26
+  elseif (cowboy.state == "crouch" or cowboy.state == "dying") then
+    box.w = 8 
+    box.h = 17
+  elseif (cowboy.state == "dead") then
+    box.w = 22
+    box.h = 9
+  end
+  return box
 end
 
 function expire_cowboy(cowboy)
-    cowboy.state = "dead" 
-    cowboy.position.y = ground.y - 13
-    cowboy.velocity = { x = -1, y = 0 }
-    cowboy.acceleration = { x = 0, y = 0 }
+  cowboy.state = "dead" 
+  cowboy.position.y = ground.y - 13
+  cowboy.velocity = { x = -1, y = 0 }
+  cowboy.acceleration = { x = 0, y = 0 }
 end
 
 function move_object(object)
-    if (object.velocity) then
-        object.position = vector_add(object.position, object.velocity)
-    end
+  if (object.velocity) then
+    object.position = vector_add(object.position, object.velocity)
+  end
 
-    if (object.acceleration) then
-        object.velocity = vector_add(object.velocity, object.acceleration)
-    end
+  if (object.acceleration) then
+    object.velocity = vector_add(object.velocity, object.acceleration)
+  end
 end
 
 function update_actor(actor)
-    actor.animation.elapsed += timer.elapsed
+  actor.animation.elapsed += timer.elapsed
 
-    if (actor.animation.elapsed >= actor.animation.length) then
-        for k,v in pairs(actor.elements) do
-            actor.elements[k].frame = update_frame(v)
-        end
-        if (actor.state == "dying") then 
-            actor.death_clock -= 1
-            if (actor.death_clock <= 0) then
-                expire_cowboy(actor)
-            end
-        end
-        actor.animation.elapsed = 0
+  if (actor.animation.elapsed >= actor.animation.length) then
+    for k,v in pairs(actor.elements) do
+      actor.elements[k].frame = update_frame(v)
     end
-
-    actor.box = actor.update_box_fn(actor)
-    move_object(actor)
-
-    if (actor.position.y + 30 >= ground.y and actor.state == "jump") then
-        actor.velocity.y = 0
-        actor.acceleration.y = 0
-        actor.position.y = ground.y - 30
-        actor.state = "ground"
+    if (actor.state == "dying") then 
+      actor.death_clock -= 1
+      if (actor.death_clock <= 0) then
+        expire_cowboy(actor)
+      end
     end
+    actor.animation.elapsed = 0
+  end
 
-    if (update_projectile(actor.projectile)) then
-        actor.projectile = make_projectile(actor)
-    end
+  actor.box = actor.update_box_fn(actor)
+  move_object(actor)
 
-    if (actor.behaviour_fn) then
-      actor.behaviour_fn(actor)
-    end
+  if (actor.position.y + 30 >= ground.y and actor.state == "jump") then
+    actor.velocity.y = 0
+    actor.acceleration.y = 0
+    actor.position.y = ground.y - 30
+    actor.state = "ground"
+  end
+
+  if (update_projectile(actor.projectile)) then
+    actor.projectile = make_projectile(actor)
+  end
+
+  if (actor.behaviour_fn) then
+    actor.behaviour_fn(actor)
+  end
 end
 
 function update_projectile_box(projectile)
-    local box = {}
-    box = { x = projectile.position.x + 1, y = projectile.position.y + 2, w = 6, h = 4 }
-    return box
+  local box = {}
+  box = { x = projectile.position.x + 1, y = projectile.position.y + 2, w = 6, h = 4 }
+  return box
 end
 
 function update_projectile(projectile)
-    if (not projectile.fired) then return end
-    move_object(projectile)
-    projectile.box = update_projectile_box(projectile)
-    if (projectile.position.x > 127 or projectile.position.x < 0) then
-        return true
-    end
-    return false
+  if (not projectile.fired) then return end
+  move_object(projectile)
+  projectile.box = update_projectile_box(projectile)
+  if (projectile.position.x > 127 or projectile.position.x < 0) then
+    return true
+  end
+  return false
 end
 
 function update_ground()
-    for i=1,#ground.columns do
-        ground.columns[i] = ground.columns[i+1]
-    end
-    add(ground.columns, make_ground())
+  for i=1,#ground.columns do
+    ground.columns[i] = ground.columns[i+1]
+  end
+  add(ground.columns, make_ground())
 end
 
 function update_clouds()    
-    for cloud in all(clouds) do
-        cloud.position.x += cloud.velocity.x
-        if (cloud.position.x > 135) then
-            del(clouds, cloud)
-            add(clouds, make_cloud())
-        end
+  for cloud in all(clouds) do
+    cloud.position.x += cloud.velocity.x
+    if (cloud.position.x > 135) then
+      del(clouds, cloud)
+      add(clouds, make_cloud())
     end
+  end
 end
 
 function update_death()
-    if (check_projectile_death(hero.projectile, bandit) and not dead_states[bandit.state]) then game.score += 1 end
-    if (check_projectile_death(hero.projectile, innocent) and not game.loss_reason) then game.loss_reason = "you killed an innocent" end
-    if (check_projectile_death(bandit.projectile, hero) or check_melee_death() or check_eagle_death() and not game.loss_reason) then game.loss_reason = "you're dead" end 
+  if (check_projectile_death(hero.projectile, bandit) and not dead_states[bandit.state]) then game.score += 1 end
+  if (check_projectile_death(hero.projectile, innocent) and not game.loss_reason) then game.loss_reason = "you killed an innocent" end
+  if (check_projectile_death(bandit.projectile, hero) or check_melee_death() or check_eagle_death() and not game.loss_reason) then game.loss_reason = "you're dead" end 
 end
 
 function _update()
-    update_timer()
-    if (game.state == "play") then 
-        for i=1,#actors do
-          update_actor(actors[i])
-        end
-        update_input()
-        update_death()
-        update_game_over()
-        update_ground()
-        reset_actors_out_of_bounds()
-    else 
-        update_instructions_input()
+  update_timer()
+  if (game.state == "play") then 
+    for i=1,#actors do
+      update_actor(actors[i])
     end
-    
-    update_blood()
-    if (game.state ~= "loss") then
-        update_clouds()
-    end
+    update_input()
+    update_death()
+    update_game_over()
+    update_ground()
+    reset_actors_out_of_bounds()
+  else 
+    update_instructions_input()
+  end
+  
+  update_blood()
+  if (game.state ~= "loss") then
+    update_clouds()
+  end
 end
 
 function draw_frame(animated_element, x, y, scale_height, flip_x) 
-    if (not animated_element) then return end
-    if (animated_element.p) then
-        for c in all(animated_element.p) do
-            pal(c.c1, c.c2)
-        end
+  if (not animated_element) then return end
+  if (animated_element.p) then
+    for c in all(animated_element.p) do
+      pal(c.c1, c.c2)
     end
-    local sprite_x = animated_element.spr_offset % 16
-    local sprite_y = flr(animated_element.spr_offset / 16);
-    sspr(flr(animated_element.frame + sprite_x) * 8, sprite_y * 8, 8, 8, x, y, 8, 8 * scale_height, flip_x)
-    pal()
+  end
+  local sprite_x = animated_element.spr_offset % 16
+  local sprite_y = flr(animated_element.spr_offset / 16);
+  sspr(flr(animated_element.frame + sprite_x) * 8, sprite_y * 8, 8, 8, x, y, 8, 8 * scale_height, flip_x)
+  pal()
 end
 
 function draw_actor(actor)
-    local x = actor.position.x
-    local y = actor.position.y
+  local x = actor.position.x
+  local y = actor.position.y
 
-    draw_projectile(actor.projectile)
-    for element in all(actor.elements) do
-        if (element.states[actor.state]) then
-            draw_frame(element, x + (actor.face_left and -1 or 1) * element.position.x, y + element.position.y, element.scale_height or 1, actor.face_left)
-        end
+  draw_projectile(actor.projectile)
+  for element in all(actor.elements) do
+    if (element.states[actor.state]) then
+      draw_frame(element, x + (actor.face_left and -1 or 1) * element.position.x, y + element.position.y, element.scale_height or 1, actor.face_left)
     end
+  end
 end
 
 function draw_projectile(projectile)
-    if (not projectile.fired) then return end
-    local box = projectile.box;
-    spr(projectile.sprite, flr(projectile.position.x), flr(projectile.position.y), 1, 1, projectile.face_left)
+  if (not projectile.fired) then return end
+  local box = projectile.box;
+  spr(projectile.sprite, flr(projectile.position.x), flr(projectile.position.y), 1, 1, projectile.face_left)
 end
 
 function draw_ground()
-    for x=1,#ground.columns do
-        local column = ground.columns[x]
-        for y=1,#column do
-            local color = column[y]
-            pset(x - 1, ground.y + y - 1, color)
-        end
+  for x=1,#ground.columns do
+    local column = ground.columns[x]
+    for y=1,#column do
+      local color = column[y]
+      pset(x - 1, ground.y + y - 1, color)
     end
+  end
 end
 
 function draw_clouds()
-    for cloud in all(clouds) do
-        for puff in all(cloud.puffs) do
-            circfill(flr(cloud.position.x + puff.x), flr(cloud.position.y + puff.y), puff.radius, 6)
-        end
-        for puff in all(cloud.puffs) do
-            circfill(flr(cloud.position.x + puff.x), flr(cloud.position.y + puff.y), puff.radius - 2, 7)
-        end
+  for cloud in all(clouds) do
+    for puff in all(cloud.puffs) do
+      circfill(flr(cloud.position.x + puff.x), flr(cloud.position.y + puff.y), puff.radius, 6)
     end
+    for puff in all(cloud.puffs) do
+      circfill(flr(cloud.position.x + puff.x), flr(cloud.position.y + puff.y), puff.radius - 2, 7)
+    end
+  end
 end
 
 function draw_blood()
-    for blood in all(bloods) do
-        for drop in all(blood) do
-            pset(drop.position.x, drop.position.y, drop.color)
-        end
+  for blood in all(bloods) do
+    for drop in all(blood) do
+      pset(drop.position.x, drop.position.y, drop.color)
     end
+  end
 end
 
 function draw_instructions()
-    local cooloff = ceil((game.loss_cooloff.length - game.loss_cooloff.elapsed) / 0.5)
-    local text = game.state == "welcome" and 
-          { "the law of the west", "kill or avoid your enemies", "spare the innocent", "", cooloff > 0 and "get ready "..cooloff or "press a button to start" } 
-          or { "game over", game.loss_reason, "", cooloff > 0 and "get ready "..cooloff or "press a button to restart" }
-    
-    for i=1,#text do
-        print(text[i], 64 - (#text[i] * 4) / 2, 40 + i * 8, i == 1 and 2 or 7)
-    end
-    if (game.state == "welcome") then print("⬆️jump ⬇️duck ❎shoot", 22, 88, 6) end
+  local cooloff = ceil((game.loss_cooloff.length - game.loss_cooloff.elapsed) / 0.5)
+  local text = game.state == "welcome" and 
+    { "the law of the west", "kill or avoid your enemies", "spare the innocent", "", cooloff > 0 and "get ready "..cooloff or "press a button to start" } 
+    or { "game over", game.loss_reason, "", cooloff > 0 and "get ready "..cooloff or "press a button to restart" }
+  
+  for i=1,#text do
+    print(text[i], 64 - (#text[i] * 4) / 2, 40 + i * 8, i == 1 and 2 or 7)
+  end
+  if (game.state == "welcome") then print("⬆️jump ⬇️duck ❎shoot", 22, 88, 6) end
 end
 
 function draw_score()
-    print("bandit body count: "..game.score, 1, 1, 2)
+  print("bandit body count: "..game.score, 1, 1, 2)
 end
 
 function _draw()
-    cls(1)
-    draw_ground()
-    draw_clouds()
+  cls(1)
+  draw_ground()
+  draw_clouds()
 
-    if (game.state == "play" or game.state == "loss") then
-        draw_actor(innocent)
-        draw_actor(bandit)
-        draw_actor(hero)
-        draw_actor(eagle)
-        draw_blood()
-        draw_score()
-    end
-    
-    if (game.state ~= "play") then
-        draw_instructions()
-    end 
+  if (game.state == "play" or game.state == "loss") then
+    draw_actor(innocent)
+    draw_actor(bandit)
+    draw_actor(hero)
+    draw_actor(eagle)
+    draw_blood()
+    draw_score()
+  end
+  
+  if (game.state ~= "play") then
+    draw_instructions()
+  end 
 end
 __gfx__
 00ccc00000ccc00000ccc00000ccc00000ccc0000000333000003330000033300000333000003330044444440444444000000000000000000000000000000000
