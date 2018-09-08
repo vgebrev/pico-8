@@ -330,14 +330,16 @@ function behaviour_bandit(bandit)
   if (bandit.state == "dead" or bandit.state == "dying") then return end
 
   local dx = bandit.position.x - hero.position.x
-  if (not bandit.projectile.fired and dx >= 56 and rnd(1) < 0.05 and hero.state ~= "jump" and alive_states[hero.state] and bandit.position.x <= 127) then
+  if (not bandit.projectile.fired and hero.state ~= "jump" and alive_states[hero.state]
+      and dx >= 56 and bandit.position.x <= 127 and eagle.position.x > bandit.position.x and rnd(1) < 0.05) then
     bandit.projectile = make_projectile(bandit)
     bandit.projectile.fired = true
     sfx(24)
   end
 
   dx = bandit.position.x - hero.projectile.position.x
-  if (bandit.state == "ground" and hero.projectile.fired and dx <= 32 and dx > 0 and hero.projectile.position.y >= bandit.position.y + 8 and rnd(1) < 0.125) then
+  if (bandit.state == "ground" and hero.projectile.fired 
+      and dx <= 32 and dx > 0 and hero.projectile.position.y >= bandit.position.y + 8 and rnd(1) < 0.125) then
     jump_cowboy(bandit)
   end
 end
